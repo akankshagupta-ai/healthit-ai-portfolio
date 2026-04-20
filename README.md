@@ -1,76 +1,75 @@
-# healthit-ai-portfolio
+# Project 1 — FHIR Query Copilot
 
-> **I am a healthcare professional with 8 years in Public Health and Health IT, PMP certified, who builds AI prompt systems that turn messy clinical and population data into safe, structured, decision-ready outputs.**
-
-Hi, I'm **Dr Akanksha Gupta**. This repo holds three flagship prompt engineering projects for the healthcare and health IT domain. Each project uses only synthetic or public data — **no PHI, ever** — and is designed to be reviewed in under 2 minutes by a hiring manager.
-
-📍 Based in Noida · 📧 [akankshagupta1707@gmail.com] · 💼 [www.linkedin.com/in/dr-akanksha-gupta-pm]
-
----
-
-## Projects
-
-### 🧭 Project 1 — [FHIR Query Copilot](./01-fhir-copilot)
-Plain-English to valid FHIR / SQL queries for health-data analytics teams. Schema-grounded on Synthea synthetic data. *Target metric: lift query validity from baseline to 85%+ on a 25-item evaluation set.*
+> Plain-English questions → valid SQL queries over Synthea synthetic patient data, with a one-line explanation of which FHIR resources are involved.
 
 **Status:** in progress · **Target completion:** Week 5
+**Author:** Akanksha Gupta
+**Data:** [Synthea](https://synthetichealth.github.io/synthea/) — open-source synthetic patient records (no PHI, ever)
 
 ---
 
-### 🛡 Project 2 — [Clinical Note Summarizer with Safety Guardrails](./02-clinical-summarizer)
-Structured, PHI-safe summaries of discharge notes, powered by an LLM-as-judge guardrail pattern. Demonstrates JSON schema enforcement, hallucination checks, and HIPAA-aware prompt design.
+## The problem
 
-**Status:** planned · **Target completion:** Week 9
+Public-health and Health IT analysts spend hours writing SQL queries against patient databases. Most of these queries are variations of the same patterns: counts, distributions, time-trends, cross-tabulations. The team's clinical leaders, program managers, and PMs typically can't write SQL themselves, so they wait in line for an analyst — slowing every decision.
 
----
+A reliable natural-language-to-SQL layer would let non-technical staff get answers in seconds, freeing analysts for higher-value work.
 
-### 📊 Project 3 — [Population Health Insights Assistant](./03-population-health-assistant) *(capstone)*
-A no-code conversational analyst over CDC PLACES public-health data. Includes a full PRD written in PMP voice and a 20-question evaluation rubric.
+## The user
 
-**Status:** planned · **Target completion:** Week 11
+A **public-health program manager** at a state health department or a managed-care organization. She knows her domain (diabetes prevention, opioid surveillance, immunization coverage) but cannot write SQL. She has access to a flat-file export of patient data structured in the Synthea / OMOP / FHIR family of schemas.
 
----
+## The approach
 
-## Why this portfolio
+A prompt-engineered assistant that:
 
-Most prompt engineers don't know healthcare. Most healthcare professionals don't know prompt engineering. This portfolio is built on the thesis that the intersection — AI features that are **safe, compliant, and workflow-aware** — is the most valuable place to stand in 2026.
+1. Receives a plain-English question (e.g., *"How many patients aged 50 or older have a diabetes diagnosis?"*)
+2. Returns a valid SQL query against the documented schema
+3. Returns a one-line explanation that names the FHIR resources behind each table
 
-Every project here is:
+The assistant is grounded on:
+- The Synthea CSV schema (see [`schema.md`](./schema.md))
+- A handful of few-shot examples (see [`v1-system-prompt.md`](./v1-system-prompt.md))
+- A repair loop: if the SQL fails to parse, the model gets the parse error back and tries again *(added in v3)*
 
- **Grounded** — no toy demos; each uses realistic synthetic or public data
- **Measured** — every project has an `/evals` folder with a numeric metric
- **Documented** — PRDs, prompt version history, safety briefs
- **Reproducible** — a hiring manager can clone the repo and re-run everything
+## What "good" looks like
 
----
+A 25-question evaluation set ([`questions.csv`](./questions.csv)) covering 8 easy, 12 medium, and 5 hard questions. The headline metric is **query validity rate**: of the 25 questions, what percentage produces SQL that (a) parses, (b) runs without error against the Synthea schema, and (c) returns the correct answer.
 
-## About me
+| Version | Target | What changed |
+|---|---|---|
+| v1 | Baseline ~60-70% | Schema injection + 5 few-shot examples |
+| v2 | 75-80% | Add structured output (JSON with `sql` and `explanation` fields), tighter constraints |
+| v3 | 85%+ | Add a self-repair loop: failed queries get the error message and one retry |
 
- **8 years** in healthcare, focused on Public Health and Health IT
- **PMP certified** — disciplined scope, stakeholder, and risk management
- **Prompt engineering toolkit:** Claude, ChatGPT (Custom GPTs & Projects), structured JSON outputs, LLM-as-judge evaluation, simple RAG, tool / function calling
- **Domain familiarity:** HIPAA, HL7, FHIR, ICD-10
- **Looking for:** AI Product Manager (Healthcare), AI Solutions Consultant
+## Tech stack
 
----
+- **LLM:** Claude (via [claude.ai Projects](https://claude.ai)) — primary. Prompt is portable to ChatGPT.
+- **Data:** Synthea 100-patient sample (CSV export) — download instructions in [`data-source.md`](./data-source.md)
+- **Eval:** spreadsheet-based, no code required (run each prompt by hand, log results) — rubric in [`SCORING_RUBRIC.md`](./SCORING_RUBRIC.md)
+
+## Files in this folder
+
+| File | Purpose |
+|---|---|
+| [`README.md`](./README.md) | This file |
+| [`HOW_TO_RUN_WEEK_3.md`](./HOW_TO_RUN_WEEK_3.md) | Single-page playbook for the 90-minute v1 evaluation session |
+| [`schema.md`](./schema.md) | The 5 Synthea tables with FHIR resource mappings |
+| [`data-source.md`](./data-source.md) | How to download Synthea and why it's safe |
+| [`v1-system-prompt.md`](./v1-system-prompt.md) | The v1 system prompt (baseline) |
+| [`questions.csv`](./questions.csv) | The 25-question evaluation set with reference SQL |
+| [`SCORING_RUBRIC.md`](./SCORING_RUBRIC.md) | How to score the model's outputs |
+
+## Headline result *(updated when Project ships in Week 5)*
+
+> Lifted query validity from **XX%** in v1 to **XX%** in v3 across a 25-question evaluation set, by introducing structured outputs and a self-repair loop.
 
 ## Data & safety
 
-All three projects use **only synthetic or publicly available data**:
+This project uses **only Synthea synthetic patient data**, generated specifically for software testing and research. No real Protected Health Information (PHI) is used, stored, or transmitted. The Synthea generator is open-source and freely redistributable.
 
- [Synthea](https://synthetichealth.github.io/synthea/) — open-source synthetic patient records
- [MTSamples](https://mtsamples.com/) — synthetic clinical note samples
- [CDC PLACES](https://www.cdc.gov/places/) — U.S. local-area public-health estimates
- [WHO GHO](https://www.who.int/data/gho) — global health indicators
+## What V2 would look like (the "future work" section recruiters love)
 
-No Protected Health Information (PHI) is used, stored, or transmitted anywhere in this repository.
-
----
-
-## Get in touch
-
-📧 Email: akankshagupta1707@gmail.com
-💼 LinkedIn: www.linkedin.com/in/dr-akanksha-gupta-pm
-🌐 Portfolio site: [your Notion link]
-
-*
+- Run against a real FHIR server (HAPI FHIR sandbox) to generate actual FHIR REST queries instead of SQL
+- Add chart generation (return a plot for trend questions, not just a table)
+- Add a "show your work" mode: the model explains its decomposition before writing SQL
+- Wire into a Streamlit or Gradio interface for non-technical end users
