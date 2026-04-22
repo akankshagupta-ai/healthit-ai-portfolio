@@ -17,14 +17,17 @@
 
 ## Getting the data
 
-For this project, download the **100-sample CSV export**:
+The official Synthea sample-data site has been intermittent. Use this mirror, which hosts a clean 100-patient CSV export:
 
-1. Visit https://synthetichealth.github.io/synthea-sample-data/downloads/download.html
-2. Scroll to "100 Sample Synthetic Patient Records, CSV: 7 MB"
-3. Download and unzip. You get ~20 CSV files.
-4. We use only 5: `patients.csv`, `conditions.csv`, `observations.csv`, `encounters.csv`, `medications.csv`.
+1. Download: https://github.com/lhs-open/synthetic-data/raw/main/record/synthea-dataset-100.zip
+2. Unzip. You'll get ~16 CSV files.
+3. This project uses only 5 of them: patients.csv, conditions.csv, observations.csv, encounters.csv, medications.csv.
 
-That's it — no API keys, no installation, no licenses.
+No API keys, no installation, no licenses.
+
+Alternative sources if the above ever breaks:
+- https://synthea.mitre.org/downloads (official, intermittent)
+- https://github.com/synthetichealth/synthea (generate your own from source)
 
 ## Using the data in the evaluation
 
