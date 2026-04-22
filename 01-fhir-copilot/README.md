@@ -27,45 +27,37 @@ A prompt-engineered assistant that:
 3. Returns a one-line explanation that names the FHIR resources behind each table
 
 The assistant is grounded on:
-- The Synthea CSV schema (5 tables documented in [`docs/schema.md`](./docs/schema.md))
-- A handful of few-shot examples (see [`prompts/v1-system-prompt.md`](./prompts/v1-system-prompt.md))
-- A repair loop: if the SQL fails to parse, the model gets the parse error back and tries again
+- The Synthea CSV schema (see [schema.md](./schema.md))
+- A handful of few-shot examples (see [v1-system-prompt.md](./v1-system-prompt.md))
+- A repair loop added in v3 that sends parse errors back to the model
 
 ## What "good" looks like
 
-A 25-question evaluation set ([`evals/questions.csv`](./evals/questions.csv)) covering 8 easy, 12 medium, and 5 hard questions. The headline metric is **query validity rate**: of the 25 questions, what percentage produces SQL that (a) parses, (b) runs without error against the Synthea schema, and (c) returns the correct answer.
+A 25-question evaluation set ([questions.csv](./questions.csv)) covering 8 easy, 12 medium, and 5 hard questions. The headline metric is **query validity rate**: of the 25 questions, what percentage produces SQL that (a) parses, (b) runs without error against the Synthea schema, and (c) returns the correct answer.
 
 | Version | Target | What changed |
 |---|---|---|
 | v1 | Baseline ~60-70% | Schema injection + 5 few-shot examples |
-| v2 | 75-80% | Add structured output (JSON with `sql` and `explanation` fields), tighter constraints |
-| v3 | 85%+ | Add a self-repair loop: failed queries get the error message and one retry |
+| v2 | 75-80% | Structured JSON output, tighter constraints |
+| v3 | 85%+ | Self-repair loop on parse failure |
 
 ## Tech stack
 
-- **LLM:** Claude (via [claude.ai Projects](https://claude.ai)) — primary. Prompt is portable to ChatGPT.
-- **Data:** Synthea 100-patient sample (CSV export)
-- **Eval:** spreadsheet-based, no code required (run each prompt by hand, log results)
-- **Optional:** SQLite or DuckDB to actually execute the SQL — covered in Week 4
+- **LLM:** Claude (via claude.ai Projects) — primary. Prompt is portable to ChatGPT.
+- **Data:** Synthea 100-patient sample (CSV export) — download in [data-source.md](./data-source.md)
+- **Eval:** spreadsheet-based, no code required — rubric in [SCORING_RUBRIC.md](./SCORING_RUBRIC.md)
 
-## Repo structure
+## Files in this folder
 
-```
-01-fhir-copilot/
-├── README.md                       (this file)
-├── docs/
-│   ├── schema.md                   (the 5 Synthea tables + FHIR mapping)
-│   └── data-source.md              (how to download Synthea, where it came from)
-├── prompts/
-│   ├── v1-system-prompt.md         (baseline)
-│   ├── v2-system-prompt.md         (added in Week 4)
-│   └── v3-system-prompt.md         (added in Week 4)
-└── evals/
-    ├── questions.csv               (the 25-question eval set)
-    ├── results-v1.csv              (filled in Week 3)
-    ├── results-v2.csv              (filled in Week 4)
-    └── results-v3.csv              (filled in Week 4)
-```
+| File | Purpose |
+|---|---|
+| [README.md](./README.md) | This file |
+| [HOW_TO_RUN_WEEK_3.md](./HOW_TO_RUN_WEEK_3.md) | Playbook for the 90-minute v1 evaluation session |
+| [schema.md](./schema.md) | The 5 Synthea tables with FHIR resource mappings |
+| [data-source.md](./data-source.md) | How to download Synthea and why it's safe |
+| [v1-system-prompt.md](./v1-system-prompt.md) | The v1 system prompt (baseline) |
+| [questions.csv](./questions.csv) | 25-question evaluation set with reference SQL |
+| [SCORING_RUBRIC.md](./SCORING_RUBRIC.md) | How to score the model's outputs |
 
 ## Headline result *(updated when Project ships in Week 5)*
 
@@ -75,9 +67,9 @@ A 25-question evaluation set ([`evals/questions.csv`](./evals/questions.csv)) co
 
 This project uses **only Synthea synthetic patient data**, generated specifically for software testing and research. No real Protected Health Information (PHI) is used, stored, or transmitted. The Synthea generator is open-source and freely redistributable.
 
-## What V2 would look like (the "future work" section recruiters love)
+## What V2 would look like
 
-- Run against a real FHIR server (HAPI FHIR sandbox) to generate actual FHIR REST queries instead of SQL
-- Add chart generation (return a plot for trend questions, not just a table)
-- Add a "show your work" mode: the model explains its decomposition before writing SQL
+- Run against a real FHIR server (HAPI FHIR sandbox) to generate actual FHIR REST queries
+- Add chart generation for trend questions
+- Add a "show your work" mode where the model explains its decomposition
 - Wire into a Streamlit or Gradio interface for non-technical end users
